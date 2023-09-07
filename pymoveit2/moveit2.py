@@ -45,7 +45,7 @@ class MoveIt2:
         joint_names: List[str],
         base_link_name: str,
         end_effector_name: str,
-        group_name: str = "arm",
+        group_name: str = "left_arm",
         execute_via_moveit: bool = False,
         ignore_new_calls_while_executing: bool = False,
         callback_group: Optional[CallbackGroup] = None,

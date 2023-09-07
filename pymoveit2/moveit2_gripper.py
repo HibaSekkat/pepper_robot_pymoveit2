@@ -19,7 +19,7 @@ class MoveIt2Gripper(MoveIt2):
         gripper_joint_names: List[str],
         open_gripper_joint_positions: List[float],
         closed_gripper_joint_positions: List[float],
-        gripper_group_name: str = "gripper",
+        gripper_group_name: str = "LHand",
         execute_via_moveit: bool = False,
         ignore_new_calls_while_executing: bool = False,
         skip_planning: bool = False,
