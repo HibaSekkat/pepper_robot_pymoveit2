@@ -27,26 +27,9 @@ class MoveIt2Gripper(MoveIt2):
         callback_group: Optional[CallbackGroup] = None,
         follow_joint_trajectory_action_name: str = "gripper_trajectory_controller/follow_joint_trajectory",
     ):
-        """
-        Construct an instance of `MoveIt2Gripper` interface.
-          - `node` - ROS 2 node that this interface is attached to
-          - `gripper_joint_names` - List of gripper joint names (can be extracted from URDF)
-          - `open_gripper_joint_positions` - Configuration of gripper joints when open
-          - `closed_gripper_joint_positions` - Configuration of gripper joints when fully closed
-          - `gripper_group_name` - Name of the planning group for robot gripper
-          - `execute_via_moveit` - Flag that enables execution via MoveGroup action (MoveIt 2)
-                                   FollowJointTrajectory action (controller) is employed otherwise
-                                   together with a separate planning service client
-          - `ignore_new_calls_while_executing` - Flag to ignore requests to execute new trajectories
-                                                 while previous is still being executed
-          - `skip_planning` - If enabled, planning is skipped and a single joint trajectory point is published
-                              for closing or opening. This enables much faster operation, but the collision
-                              checking is disabled and the motion smoothness will depend on the controller.
-          - `skip_planning_fixed_motion_duration` - Desired duration for the closing and opening motions when
-                                                    `skip_planning` mode is enabled.
-          - `callback_group` - Optional callback group to use for ROS 2 communication (topics/services/actions)
-          - `follow_joint_trajectory_action_name` - Name of the action server for the controller
-        """
+        # Validation of inputs
+        if len(gripper_joint_names) != len(open_gripper_joint_positions) or len(gripper_joint_names) != len(closed_gripper_joint_positions):
+            raise ValueError("The length of gripper_joint_names must match the lengths of both open_gripper_joint_positions and closed_gripper_joint_positions.")
 
         super().__init__(
             node=node,
@@ -61,11 +44,6 @@ class MoveIt2Gripper(MoveIt2):
         )
         self.__del_redundant_attributes()
 
-        assert (
-            len(gripper_joint_names)
-            == len(open_gripper_joint_positions)
-            == len(closed_gripper_joint_positions)
-        )
         self.__open_gripper_joint_positions = open_gripper_joint_positions
         self.__closed_gripper_joint_positions = closed_gripper_joint_positions
 
@@ -96,15 +74,12 @@ class MoveIt2Gripper(MoveIt2):
                 )
             )
 
-        # Tolerance used for checking whether the gripper is open or closed
+        # Tolerance for open/close position checks
         self.__open_tolerance = [
-            0.1
-            * abs(open_gripper_joint_positions[i] - closed_gripper_joint_positions[i])
-            for i in range(len(gripper_joint_names))
+            0.1 * abs(o - c) for o, c in zip(open_gripper_joint_positions, closed_gripper_joint_positions)
         ]
-        # Indices of gripper joint within the joint state message topic.
-        # It is assumed that the order of these does not change during execution.
         self.__gripper_joint_indices: Optional[List[int]] = None
+
 
     def __call__(self):
         """
